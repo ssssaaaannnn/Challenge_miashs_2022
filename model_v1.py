@@ -35,7 +35,7 @@ train_generator = datagen.flow_from_directory(
     batch_size=BATCH_SIZE,
     target_size=(IMG_H, IMG_W),
     shuffle=True,
-    class_mode='categorical')
+    class_mode='binary')
 
 test_flow = datagen.flow_from_directory(
     test_path,
@@ -43,7 +43,7 @@ test_flow = datagen.flow_from_directory(
     batch_size=BATCH_SIZE,
     target_size=(IMG_H, IMG_W),
     shuffle=True,
-    class_mode='categorical')
+    class_mode='binary')
 
 #MODELE
 
