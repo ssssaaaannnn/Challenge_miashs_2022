@@ -9,6 +9,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 #Librairie de path
 import pathlib
 import pandas as pd
+import numpy as np
 
 #For model
 from focal_loss import SparseCategoricalFocalLoss
@@ -25,6 +26,7 @@ try:
 
     number_class=1081
     dataset = pathlib.Path(r"/home/data/challenge_2022_miashs/train")
+    weights = np.load(r'./weights_classes.npy')
     #train_path = pathlib.Path(r"/home/data/challenge_2022_miashs/train")
     #test_path = pathlib.Path(r"/home/data/challenge_2022_miashs/test")
 
@@ -73,7 +75,7 @@ try:
 
     #Modèle compilation
     model_resnet.compile(optimizer="Adam", 
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        loss=SparseCategoricalFocalLoss(gamma= weights),
         metrics=['accuracy', 'sparse_top_k_categorical_accuracy'])
     
     history = model_resnet.fit(train_generator, validation_data=validation_generator,epochs=30,batch_size=BATCH_SIZE, verbose=1,validation_steps=1)
