@@ -18,8 +18,10 @@ try:
   #tf.config.set_logical_device_configuration(gpus[3],[tf.config.LogicalDeviceConfiguration(memory_limit=64)])
   with tf.device('/device:GPU:3'):
 
-    train_path = pathlib.Path(r"/home/data/challenge_2022_miashs/train")
-    test_path = pathlib.Path(r"/home/data/challenge_2022_miashs/test")
+    number_class=1081
+    dataset = pathlib.Path(r"/home/data/challenge_2022_miashs/train")
+    #train_path = pathlib.Path(r"/home/data/challenge_2022_miashs/train")
+    #test_path = pathlib.Path(r"/home/data/challenge_2022_miashs/test")
 
     #train_path = pathlib.Path(r"C:\Users\lulu5\Documents\train")
     #test_path = pathlib.Path(r"C:\Users\lulu5\Documents\test")
@@ -40,38 +42,40 @@ try:
 
     #GENERATOR CREATION
     train_generator = datagen.flow_from_directory(
-        train_path,
+        dataset,
         color_mode="rgb",
         batch_size=BATCH_SIZE,
-        target_size=(IMG_H, IMG_W),
+        subset = "training",
+        target_size=(IMG_H,IMG_W),
         shuffle=True,
         class_mode='binary')
 
-    test_flow = datagen.flow_from_directory(
-        test_path,
+    validation_generator = datagen.flow_from_directory(
+        dataset,
         color_mode="rgb",
         batch_size=BATCH_SIZE,
-        target_size=(IMG_H, IMG_W),
+        subset = "validation",
+        target_size=(IMG_H,IMG_W),
         shuffle=True,
         class_mode='binary')
 
     #MODELE
 
     #Modèle instanciation
-    model = tf.keras.applications.resnet50.ResNet50(
-        include_top=True, weights='imagenet', input_tensor=None,
-        input_shape=None, pooling=None, classes=1000)
+    model_resnet = tf.keras.applications.resnet50.ResNet50(
+        include_top=True, weights=None, input_tensor=None,
+        input_shape=None, pooling=None, classes=number_class)
 
     #Modèle compilation
-    model.compile(optimizer="Adam", 
-            loss = SparseCategoricalFocalLoss(gamma=5),
-            metrics=['accuracy', 'sparse_top_k_categorical_accuracy'])
+    model_resnet.compile(optimizer="Adam", 
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=['accuracy', 'sparse_top_k_categorical_accuracy'])
     
-    history = model.fit(train_generator)
+    history = model_resnet.fit(train_generator, validation_data=validation_generator,epochs=30,batch_size=BATCH_SIZE, verbose=1,validation_steps=1)
 
-    pd.DataFrame(history.history).to_json("/home/miashs4/results/result_history_v1.json")
+    pd.DataFrame(history.history).to_json("/home/miashs4/results/result_history_resnet.json")
 
-    #model.save("/home/miashs4/results/model_V1.h5")
+    model_resnet.save("/home/miashs4/results/model_resnet.h5")
 
 except RuntimeError as e:
   print(e)
