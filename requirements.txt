@@ -12,3 +12,7 @@ tensorflow-addons
 
 # backwards compatibility
 pathlib2
+
+
+conda install -c esri tensorflow-addons
+albumentations
