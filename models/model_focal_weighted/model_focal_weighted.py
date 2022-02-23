@@ -23,9 +23,9 @@ from tensorflow.keras.callbacks import LearningRateScheduler
 NAME_MODEL = "RESNET50_PRETRAINED_FOCAL_WEIGHTED"
 
 # VARIABLE DE CHEMIN
-PATH_TRAINSET = "D:\Challenge_miashs_2022\data\echantillon_1"
+PATH_TRAINSET = "/home/data/challenge_2022_miashs/train"
 PATH_TESTSET = "/home/data/challenge_2022_miashs/test"
-PATH_STORAGE_MDOEL = "/home/miashs4/results/"+NAME_MODEL+"/" 
+PATH_STORAGE_MODEL = "/home/miashs4/results/"+NAME_MODEL+"/" 
 
 # VARIABLE MODEL
 EPOCH = 20
@@ -33,7 +33,7 @@ BATCH_SIZE = 64
 IMG_H = 200
 IMG_W = 200
 NUM_CLASS = 1081
-weights = np.load(r'models\model_focal_weighted\weights_classes.npy')
+weights = np.load('/home/miashs4/weights_classes.npy')
 
 ################################################
 ################################################
@@ -43,7 +43,7 @@ weights = np.load(r'models\model_focal_weighted\weights_classes.npy')
 tf.debugging.set_log_device_placement(False)
 #get list of gpu
 gpus = tf.config.list_physical_devices('GPU')
-print(gpus)
+# print(gpus)
 
 
 try:
@@ -63,17 +63,17 @@ try:
        # other transformation your want
        # ...
        }
-    datagen = ImageDataGenerator(**TFs, validation_split=0.2, preprocessing_function=tf.keras.applications.resnet50.preprocess_input)
+    datagen = ImageDataGenerator(**TFs, validation_split=0., preprocessing_function=tf.keras.applications.resnet50.preprocess_input)
 
     #GENERATOR CREATION
-    validation_generator = datagen.flow_from_directory(
-        PATH_TRAINSET, 
-        color_mode="rgb",
-        batch_size=BATCH_SIZE,
-        subset = "validation",
-        target_size=(IMG_H,IMG_W),
-        shuffle=True,
-        class_mode='binary')
+    # validation_generator = datagen.flow_from_directory(
+    #     PATH_TRAINSET, 
+    #     color_mode="rgb",
+    #     batch_size=BATCH_SIZE,
+    #     subset = "validation",
+    #     target_size=(IMG_H,IMG_W),
+    #     shuffle=True,
+    #     class_mode='binary')
 
     train_generator = datagen.flow_from_directory(
         PATH_TRAINSET, 
@@ -124,14 +124,17 @@ try:
     )
 
     history = model.fit(train_generator, 
-        validation_data=validation_generator , epochs=EPOCH,
-        batch_size=BATCH_SIZE, verbose=1, validation_steps=1,
+        # validation_data=validation_generator ,
+        epochs=EPOCH,
+        batch_size=BATCH_SIZE,
+        verbose=1, 
+        # validation_steps=1,
         callbacks=my_callbacks
     )
 
-    pd.DataFrame(history.history).to_json(PATH_STORAGE_MDOEL+"result_history_resnet.json")
+    pd.DataFrame(history.history).to_json(PATH_STORAGE_MODEL+"result_history_resnet.json")
 
-    model.save(PATH_STORAGE_MDOEL+"model_resnet.h5")
+    model.save(PATH_STORAGE_MODEL+"model_resnet.h5")
 
 except RuntimeError as e:
   print(e)
