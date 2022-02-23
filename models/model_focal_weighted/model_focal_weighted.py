@@ -20,12 +20,12 @@ from tensorflow.keras.callbacks import LearningRateScheduler
 ################################################
 ################################################
 
-NAME_MODEL = "RESNET50_PRETRAINED_FOCAL_WEIGHTED"
+NAME_MODEL = "resnet_models"
 
 # VARIABLE DE CHEMIN
 PATH_TRAINSET = "/home/data/challenge_2022_miashs/train"
 PATH_TESTSET = "/home/data/challenge_2022_miashs/test"
-PATH_STORAGE_MODEL = "/home/miashs4/results/"+NAME_MODEL+"/" 
+PATH_STORAGE_MODEL = "/home/miashs4/results/resnet_models/"
 
 # VARIABLE MODEL
 EPOCH = 20
@@ -33,7 +33,7 @@ BATCH_SIZE = 64
 IMG_H = 200
 IMG_W = 200
 NUM_CLASS = 1081
-weights = np.load('/home/miashs4/weights_classes.npy')
+weights = np.load('/home/miashs4/model/model_focal_weighted/weights_classes.npy')
 
 ################################################
 ################################################
@@ -50,7 +50,7 @@ try:
   # Specify an invalid GPU device
   #tf.config.set_logical_device_configuration(gpus[3],[tf.config.LogicalDeviceConfiguration(memory_limit=64)])
   with tf.device('/device:GPU:3'):
-    mixed_precision.set_global_policy('mixed_float16')
+    #mixed_precision.set_global_policy('mixed_float16')
 
     #CREATION OF AUGMENTATION
     TFs = {#'height_shift_range':  .5,
@@ -94,7 +94,7 @@ try:
             return 10**(-6)
 
     my_callbacks = [
-        tf.keras.callbacks.ModelCheckpoint(filepath='model.{epoch:02d}-{val_loss:.2f}.h5'),
+        tf.keras.callbacks.ModelCheckpoint(filepath=PATH_STORAGE_MODEL+'model.{epoch:02d}-{loss:.2f}.h5', monitor = 'loss'),
         LearningRateScheduler(step_decay, verbose=1)
     ]
 
@@ -129,7 +129,9 @@ try:
         batch_size=BATCH_SIZE,
         verbose=1, 
         # validation_steps=1,
-        callbacks=my_callbacks
+        callbacks=my_callbacks,
+        workers = 16,
+        use_multiprocessing = False
     )
 
     pd.DataFrame(history.history).to_json(PATH_STORAGE_MODEL+"result_history_resnet.json")
