@@ -6,6 +6,7 @@ warnings.filterwarnings('ignore', '.*interpolation.*', )
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import mixed_precision
 
 #Librairie de path
 import pandas as pd
@@ -48,6 +49,7 @@ try:
   # Specify an invalid GPU device
   #tf.config.set_logical_device_configuration(gpus[3],[tf.config.LogicalDeviceConfiguration(memory_limit=64)])
   with tf.device('/device:GPU:3'):
+    mixed_precision.set_global_policy('mixed_float16')
 
     #CREATION OF AUGMENTATION
     TFs = {"horizontal_flip": True,
@@ -89,8 +91,9 @@ try:
             keras.layers.Conv2D(32, (1, 1), activation="relu"),
             keras.layers.Dropout(0.2),
             keras.layers.Flatten(),
-            keras.layers.Dense(64, activation='relu'),
-            keras.layers.Dense(NUM_CLASS, activation='softmax'),
+            keras.layers.Dense(2048, activation='relu'),
+            keras.layers.Dense(NUM_CLASS, activation=None),
+            tf.keras.layers.Activation('softmax', dtype='float32', name='predictions')
     ])
 
 
