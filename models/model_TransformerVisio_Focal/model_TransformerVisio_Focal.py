@@ -6,6 +6,7 @@ warnings.filterwarnings('ignore', '.*interpolation.*', )
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from vit_keras import vit
 
 #Librairie de path
 import pandas as pd
@@ -15,11 +16,14 @@ import numpy as np
 from focal_loss import SparseCategoricalFocalLoss
 from tensorflow.keras.callbacks import LearningRateScheduler
 
+
 ################################################
 ################################################
 ################################################
 
-NAME_MODEL = "RESNET50_PRETRAINED_FOCAL_WEIGHTED"
+# Source: https://github.com/faustomorales/vit-keras
+
+NAME_MODEL = "TRANSFORMER_VISIO_PRETRAINED_FOCAL_WEIGHTED"
 
 # VARIABLE DE CHEMIN
 PATH_TRAINSET = "/home/data/challenge_2022_miashs/train"
@@ -43,10 +47,8 @@ tf.debugging.set_log_device_placement(False)
 #get list of gpu
 gpus = tf.config.list_physical_devices('GPU')
 
-
 try:
   # Specify an invalid GPU device
-  #tf.config.set_logical_device_configuration(gpus[3],[tf.config.LogicalDeviceConfiguration(memory_limit=64)])
   with tf.device('/device:GPU:3'):
 
     #CREATION OF AUGMENTATION
@@ -81,15 +83,17 @@ try:
     #MODELE
 
     #Modèle instanciation
-    base_model = keras.applications.ResNet50(include_top=False, input_shape=(IMG_H, IMG_W, 3), weights="imagenet")
+    base_model = vit.vit_b16(
+        image_size=IMG_H,
+        activation='sigmoid',
+        pretrained=True,
+        include_top=False,
+    )
     base_model.trainable = False
 
     model = keras.models.Sequential([
             base_model,
-            keras.layers.Conv2D(32, (1, 1), activation="relu"),
-            keras.layers.Dropout(0.2),
-            keras.layers.Flatten(),
-            keras.layers.Dense(64, activation='relu'),
+            keras.layers.Dense(2048, activation='relu'),
             keras.layers.Dense(NUM_CLASS, activation='softmax'),
     ])
 
