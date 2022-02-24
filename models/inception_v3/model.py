@@ -78,4 +78,4 @@ for epoch in range(60):
     scheduler.step()
 
 torch.save(model.state_dict(), 'model_inception_v3_cewl.torch')
-np.save(np.array("loss_save.npy", training_stats))
+np.save("loss_save.npy", np.array(training_stats))
