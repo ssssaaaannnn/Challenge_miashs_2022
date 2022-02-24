@@ -1,7 +1,6 @@
 # !pip install timm 
 import os
 import re
-import pandas as pd
 import numpy as np
 
 import timm
@@ -24,14 +23,14 @@ model = timm.create_model('inception_v3', pretrained=True, num_classes=1081)
 # model
 dataset = ImageDataset('/home/data/challenge_2022_miashs/train', 
                        transform=create_transform(224, is_training=True))
-weights = torch.tensor(np.load("weights_crossentropy.npy"))
+weights = torch.FloatTensor(np.load("/home/weights_crossentropy.npy"))
 
 loader = DataLoader(dataset, batch_size=96, shuffle=True, num_workers=16)
 
 #Cuda
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-weights.to(device)
+weights = weights.to(device)
 model.to(device)
 
 
@@ -45,10 +44,16 @@ args.momentum = 0.9
 optimizer = create_optimizer(args, model)
 criterion = CrossEntropyLoss(weight = weights)
 
-scheduler = MultiStepLR(optimizer, milestones=[30, 40], gamma=0.1)
+scheduler = MultiStepLR(optimizer, milestones=[20, 40], gamma=0.1)
+
+training_stats = []
 
 #Epoch
-for epoch in range(25):
+for epoch in range(60):
+    print("Epoch:", epoch)
+    if epoch % 2 == 0 and epoch > 10:
+        torch.save(model.state_dict(), 'model_inception_v3_cewl_e{epoch}.torch')
+
     running_loss = 0
     for inputs, targets in tqdm(loader):
         inputs, targets = inputs.to(device), targets.to(device)
@@ -59,7 +64,18 @@ for epoch in range(25):
         optimizer.step()
         optimizer.zero_grad()
         running_loss += loss.item()
-    print('Loss:', running_loss/len(loader))
+    Loss =  running_loss/len(loader)
+
+    print('Loss:', Loss)
+
+    
+    training_stats.append(
+        {
+            'epoch': epoch + 1,
+            'Training Loss': Loss
+        })
+
     scheduler.step()
 
 torch.save(model.state_dict(), 'model_inception_v3_cewl.torch')
+np.save(np.array("loss_save.npy", training_stats))
