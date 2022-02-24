@@ -9,8 +9,25 @@ from torch.nn import CrossEntropyLoss
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import shutil
 
 import warnings
+
+def save_checkpoint(filename='checkpoint.pth.tar'):
+        """
+        Saving the latest checkpoint of the training
+        :param filename: filename which will contain the state
+        :return:
+        """
+        state = {
+            'epoch': epoch,
+            'state_dict': model.state_dict(),
+            'loss':running_loss/len(loader),
+            'optimizer': optimizer
+        }
+        # Save the state
+        torch.save(state, str(epoch)+filename)
+
 warnings.filterwarnings('ignore', '.*interpolation.*', )
 
 model = timm.create_model('resnet50', pretrained=True, num_classes=1081)
@@ -48,6 +65,7 @@ for epoch in range(1):
         optimizer.zero_grad()
         running_loss += loss.item()
     print('Loss:', running_loss/len(loader))
+    save_checkpoint()
     scheduler.step()
 
 torch.save(model.state_dict(),'model.torch')
