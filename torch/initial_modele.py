@@ -19,6 +19,7 @@ dataset = ImageDataset('/home/data/challenge_2022_miashs/train',
                        transform=create_transform(224, is_training=True))
 loader = DataLoader(dataset, batch_size=100, shuffle=True, num_workers=16)
 
+
 #Cuda
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model.to(device)
